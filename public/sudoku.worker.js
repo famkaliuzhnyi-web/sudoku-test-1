@@ -110,60 +110,46 @@ function validateSudoku(board) {
 // Generate a random sudoku puzzle
 function generatePuzzle(difficulty = 'medium') {
   const difficultyLevels = {
-    easy: 36,
-    medium: 28,
-    hard: 20
+    easy: 45,
+    medium: 35,
+    hard: 25
   };
   
-  const cellsToFill = difficultyLevels[difficulty] || 28;
+  const cellsToFill = difficultyLevels[difficulty] || 35;
   
-  // Start with empty board
-  const board = Array(9).fill().map(() => Array(9).fill(0));
+  // Use a pre-solved valid sudoku as base
+  const completeSolution = [
+    [5, 3, 4, 6, 7, 8, 9, 1, 2],
+    [6, 7, 2, 1, 9, 5, 3, 4, 8],
+    [1, 9, 8, 3, 4, 2, 5, 6, 7],
+    [8, 5, 9, 7, 6, 1, 4, 2, 3],
+    [4, 2, 6, 8, 5, 3, 7, 9, 1],
+    [7, 1, 3, 9, 2, 4, 8, 5, 6],
+    [9, 6, 1, 5, 3, 7, 2, 8, 4],
+    [2, 8, 7, 4, 1, 9, 6, 3, 5],
+    [3, 4, 5, 2, 8, 6, 1, 7, 9]
+  ];
   
-  // Fill diagonal boxes first (they don't interfere with each other)
-  function fillDiagonalBoxes() {
-    for (let box = 0; box < 9; box += 3) {
-      fillBox(box, box);
+  // Create a copy for the puzzle
+  const puzzle = completeSolution.map(row => [...row]);
+  
+  // Randomly remove cells
+  const totalCells = 81;
+  const cellsToRemove = totalCells - cellsToFill;
+  const cellsRemoved = new Set();
+  
+  while (cellsRemoved.size < cellsToRemove) {
+    const row = Math.floor(Math.random() * 9);
+    const col = Math.floor(Math.random() * 9);
+    const cellKey = `${row}-${col}`;
+    
+    if (!cellsRemoved.has(cellKey)) {
+      puzzle[row][col] = 0;
+      cellsRemoved.add(cellKey);
     }
   }
   
-  function fillBox(row, col) {
-    const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        const randomIndex = Math.floor(Math.random() * numbers.length);
-        board[row + i][col + j] = numbers[randomIndex];
-        numbers.splice(randomIndex, 1);
-      }
-    }
-  }
-  
-  fillDiagonalBoxes();
-  
-  // Solve the rest
-  solveSudoku(board);
-  
-  // Remove numbers to create puzzle
-  const filledCells = [];
-  for (let i = 0; i < 9; i++) {
-    for (let j = 0; j < 9; j++) {
-      filledCells.push([i, j]);
-    }
-  }
-  
-  // Shuffle and remove cells
-  for (let i = filledCells.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [filledCells[i], filledCells[j]] = [filledCells[j], filledCells[i]];
-  }
-  
-  const cellsToRemove = 81 - cellsToFill;
-  for (let i = 0; i < cellsToRemove; i++) {
-    const [row, col] = filledCells[i];
-    board[row][col] = 0;
-  }
-  
-  return board;
+  return puzzle;
 }
 
 // Message handler
