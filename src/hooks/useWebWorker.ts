@@ -76,7 +76,14 @@ export function useWebWorker({ workerPath, onReady, onError }: UseWebWorkerOptio
       const id = `msg_${++messageIdCounter.current}`;
       const message: WorkerMessage = { id, type, data };
 
+      // Set up timeout (30 seconds)
+      const timeoutId = setTimeout(() => {
+        pendingMessages.current.delete(id);
+        reject(new Error(`Worker timeout: no response received for ${type} after 30 seconds`));
+      }, 30000);
+
       pendingMessages.current.set(id, (response: WorkerResponse) => {
+        clearTimeout(timeoutId);
         if (response.type === 'error') {
           reject(new Error(response.error || 'Worker error'));
         } else {
