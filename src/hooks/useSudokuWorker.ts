@@ -20,16 +20,20 @@ export function useSudokuWorker() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const onReady = useCallback(() => {
+    setIsWorkerReady(true);
+    setError(null);
+  }, []);
+
+  const onError = useCallback((errorMessage: string) => {
+    setError(errorMessage);
+    setIsWorkerReady(false);
+  }, []);
+
   const { sendMessage, isReady, terminate } = useWebWorker({
     workerPath: '/sudoku.worker.js',
-    onReady: () => {
-      setIsWorkerReady(true);
-      setError(null);
-    },
-    onError: (errorMessage) => {
-      setError(errorMessage);
-      setIsWorkerReady(false);
-    }
+    onReady,
+    onError
   });
 
   const solveSudoku = useCallback(async (board: SudokuBoard): Promise<SudokuSolution> => {
